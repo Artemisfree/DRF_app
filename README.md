@@ -11,5 +11,3 @@ Django 4.1.7
 1. Clone the repository and navigate into the project directory
 2. Create and activate a virtual environment
 3. Install the project dependencies
-4. Run the Django development server
-5. Open your web browser and navigate to http://localhost:8000 to access
