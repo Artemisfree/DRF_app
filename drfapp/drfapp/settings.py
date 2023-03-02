@@ -27,7 +27,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'main',
+    'main_app',
+    'postgre_app',
+    'mongo_app',
     'rest_framework',
 ]
 
@@ -67,13 +69,46 @@ WSGI_APPLICATION = 'drfapp.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
+
+MONGODB_HOST = 'localhost'
+MONGODB_PORT = 27017
+MONGODB_DB_NAME = 'mydatabase'
+MONGODB_USERNAME = 'myusername'
+MONGODB_PASSWORD = 'mypassword'
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+        'ENGINE': 'djongo',
+        'NAME': MONGODB_DB_NAME,
+        'ENFORCE_SCHEMA': False,
+        'CLIENT': {
+            'host': MONGODB_HOST,
+            'port': MONGODB_PORT,
+            'username': MONGODB_USERNAME,
+            'password': MONGODB_PASSWORD,
+            'authSource': 'admin',
+            'authMechanism': 'SCRAM-SHA-256',
+        },
+    },
 }
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'mydatabase',
+        'USER': 'mydatabaseuser',
+        'PASSWORD': 'mypassword',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
