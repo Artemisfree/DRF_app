@@ -1,32 +1,32 @@
-import rsa
-import base64
-from rest_framework.views import APIView
+from rest_framework import generics
 from rest_framework.response import Response
-from .models import Mappack
-# from .serializers import MappackSerializer
+from .serializers import MappackSerializer
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_OAEP
+import base64
+import pymongo
 
 
-class MappackView(APIView):
-    def get(self, request, format=None):
-        # Get the request parameters
-        filename = request.query_params.get('filename', '')
-        public_key = request.query_params.get('public_key', '')
+class MappackView(generics.RetrieveAPIView):
+    serializer_class = MappackSerializer
+    lookup_field = 'name'
 
-        # Find the mappack in MongoDB
-        mappack = Mappack.objects.filter(file__icontains=filename).first()
-
-        # Encrypt the mappack with RSA
-        with open('public_key.pem', 'wb') as f:
-            f.write(public_key.encode())
-        with open('public_key.pem', 'rb') as f:
-            public_key = rsa.PublicKey.load_pkcs1(f.read())
-        with open(mappack.file.path, 'rb') as f:
-            data = f.read()
-            encrypted_data = rsa.encrypt(data, public_key)
-            encrypted_data_base64 = base64.b64encode(encrypted_data)
-
-        # Return the encrypted mappack as a response
-        return Response({
-            'name': mappack.name,
-            'file': encrypted_data_base64.decode(),
-        })
+    def retrieve(self, request, *args, **kwargs):
+        # Get the mappack name from the request
+        name = kwargs.get('name')
+        # Connect to the MongoDB database
+        client = pymongo.MongoClient('mongodb://localhost:27017/')
+        db = client['mappack']
+        # Find the mappack file in the database
+        mappack = db.mappacks.find_one({'name': name})
+        if mappack is None:
+            return Response(status=404)
+        # Read the mappack file from the database
+        file_data = mappack['file']
+        # Decrypt the file data using RSA
+        private_key = RSA.import_key(open('private_key.pem').read())
+        cipher = PKCS1_OAEP.new(private_key)
+        file_data = base64.b64decode(file_data)
+        file_data = cipher.decrypt(file_data)
+        # Return the decrypted file data
+        return Response(file_data, content_type='application/octet-stream')
