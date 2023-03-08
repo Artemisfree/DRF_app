@@ -79,13 +79,23 @@ WSGI_APPLICATION = 'drfapp.wsgi.application'
 
 MONGODB_HOST = 'localhost'
 MONGODB_PORT = 27017
-MONGODB_DB_NAME = 'mydatabase'
+MONGODB_DB_NAME = 'mappacks'
+MONGODB_USERNAME = 'username'
+MONGO_DB_PASSWORD = 'password'
 
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
         'NAME': MONGODB_DB_NAME,
-        'ENFORCE_SCHEMA': False,
+        'HOST': MONGODB_HOST,
+        'PORT': MONGODB_PORT,
+        'OPTIONS': {
+            'authMechanism': 'SCRAM-SHA-1',
+            'authSource': 'admin',
+            'username': MONGODB_USERNAME,
+            'password': MONGO_DB_PASSWORD,
+            'ssl': False,
+        },
     },
 }
 
@@ -137,7 +147,7 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERED_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer'
-    ],
+    ]
 }
 
 PRIVATE_KEY_LOCATION = os.path.join(BASE_DIR, 'private_key.pem')

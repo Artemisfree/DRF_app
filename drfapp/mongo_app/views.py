@@ -1,35 +1,38 @@
-from rest_framework import generics
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import Mappack
+from pymongo import MongoClient
 from .serializers import MappackSerializer
-import os
 
 
-class MappackView(generics.RetrieveAPIView):
-    serializer_class = MappackSerializer
-
-    def retrieve(self, request, *args, **kwargs):
-        try:
-            mappack = Mappack.objects.get(**kwargs)
-            file_path = mappack.file.path
-            file_format = os.path.splitext(file_path)[1][1:]
-            with open(file_path, 'rb') as f:
-                if file_format == 'csv':
-                    response = Response(f, content_type='text/csv')
-                elif file_format == 'json':
-                    response = Response(f, content_type='application/json')
-                elif file_format == 'a2l':
-                    response = Response(
-                        f,
-                        content_type='application/octet-stream'
-                    )
-                elif file_format == 'kp':
-                    response = Response(
-                        f,
-                        content_type='application/octet-stream'
-                    )
-                else:
-                    response = Response(status=400)
-            return response
-        except Mappack.DoesNotExist:
-            return Response(status=400)
+@api_view(['GET'])
+def get_mappack(request):
+    # Connect to MongoDB.
+    client = MongoClient()
+    db = client['mappacks']
+    collection = db['mappack']
+    # Get the parameters from request
+    name = request.query_params.get('name')
+    brand = request.query_params.get('brand')
+    ecu = request.query_params.get('ecu')
+    softwareversion = request.query_params.get('softwareversion')
+    # Filter to find mappack
+    filter = {
+        'name': name,
+        'brand': brand,
+        'ecu': ecu,
+        'softwareversion': softwareversion,
+    }
+    # Find needed mappack in db
+    mappack = collection.find_one(filter)
+    # Serialize mappack and return it
+    serializer = MappackSerializer(mappack)
+    if request.query_params.get('format') == 'csv':
+        return Response(serializer.data.to_csv())
+    elif request.query_params.get('format') == 'json':
+        return Response(serializer.data)
+    elif request.query_params.get('format') == 'a2l':
+        return Response(serializer.data.to_a2l())
+    elif request.query_params.get('format') == 'kp':
+        return Response(serializer.data.to_kp())
+    else:
+        return Response(serializer.data)
