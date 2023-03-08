@@ -1,49 +1,20 @@
-import base64
-import requests
-import rsa
-
-from django.http import JsonResponse, HttpResponse
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 
-def send_file(request):
-    # Get the binary file from the client
-    bin_file = request.FILES['bin_file'].read()
-
-    # Encrypt the binary file using RSA encryption
-    with open('public_key.pem', 'rb') as f:
-        public_key = rsa.PublicKey.load_pkcs1(f.read())
-    encrypted_data = rsa.encrypt(bin_file, public_key)
-
-    # Encode the encrypted data as base64
-    encrypted_data_b64 = base64.b64encode(encrypted_data).decode('utf-8')
-
-    # Send the encrypted file to the server
-    url = 'https://example.com/upload/'
-    headers = {'Content-Type': 'application/json'}
-    data = {'file_data': encrypted_data_b64}
-    response = requests.post(url, headers=headers, json=data)
-
-    # Return the server response to the client
-    return JsonResponse({'server_response': response.json()})
+@api_view(['POST'])
+def get_options(request):
+    file_data = request.body  # Receive binary file from client
+    server_url = 'http://example.com/server'  # Replace with the server URL
+    response = request.post(server_url, data=file_data)  # Send file to server
+    options = response.content  # Get available options from server
+    return Response(options, content_type='application/octet-stream')  # Return response to client in binary format
 
 
-def receive_file(request):
-    # Receive the binary file from the server
-    url = 'https://example.com/download/'
-    headers = {'Content-Type': 'application/json'}
-    response = requests.get(url, headers=headers)
-
-    # Decode the encrypted file from base64
-    encrypted_data_b64 = response.json()['file_data']
-    encrypted_data = base64.b64decode(encrypted_data_b64)
-
-    # Decrypt the encrypted file using RSA encryption
-    with open('private_key.pem', 'rb') as f:
-        private_key = rsa.PrivateKey.load_pkcs1(f.read())
-    decrypted_data = rsa.decrypt(encrypted_data, private_key)
-
-    # Return the decrypted file to the client
-    response = HttpResponse(content_type='application/octet-stream')
-    response['Content-Disposition'] = 'attachment; filename="file.bin"'
-    response.write(decrypted_data)
-    return response
+@api_view(['POST'])
+def patch_file(request):
+    file_data = request.body
+    server_url = 'http://example.com/server'
+    response = request.post(server_url, data=file_data)
+    patched_file = response.content  # Get patched file from server
+    return Response(patched_file, content_type='application/octet-stream')

@@ -80,22 +80,12 @@ WSGI_APPLICATION = 'drfapp.wsgi.application'
 MONGODB_HOST = 'localhost'
 MONGODB_PORT = 27017
 MONGODB_DB_NAME = 'mydatabase'
-MONGODB_USERNAME = 'myusername'
-MONGODB_PASSWORD = 'mypassword'
 
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
         'NAME': MONGODB_DB_NAME,
         'ENFORCE_SCHEMA': False,
-        'CLIENT': {
-            'host': MONGODB_HOST,
-            'port': MONGODB_PORT,
-            'username': MONGODB_USERNAME,
-            'password': MONGODB_PASSWORD,
-            'authSource': 'admin',
-            'authMechanism': 'SCRAM-SHA-256',
-        },
     },
 }
 
@@ -143,6 +133,10 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_RENDERED_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer'
     ],
 }
 

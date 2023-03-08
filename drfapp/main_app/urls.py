@@ -2,6 +2,6 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('send-file/', views.send_file, name='send_file'),
-    path('receive-file/', views.receive_file, name='receive_file'),
+    path('get_options/', views.get_options, name='get_options'),
+    path('patch_file/', views.patch_file, name='patch_file'),
 ]

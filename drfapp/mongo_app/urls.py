@@ -1,7 +1,10 @@
 from django.urls import path
-from .views import MappackList, MappackDetail
+from .views import MappackView
 
 urlpatterns = [
-    path('mappacks/', MappackList.as_view(), name='mappack_list'),
-    path('mappacks/<int:pk>/', MappackDetail.as_view(), name='mappack_detail'),
+    path(
+        'mappacks/<str:name>/<str:brand>/<str:ecu>/<str:software_version>/',
+        MappackView.as_view(),
+        name='mappack-detail'
+    ),
 ]
